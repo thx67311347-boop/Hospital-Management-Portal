@@ -47,7 +47,7 @@ importers:
         version: 8.5.32
       tailwindcss:
         specifier: ^4.0.9
-        version: 4.3.3
+        version: 4.3.4
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -608,8 +608,8 @@ packages:
   scheduler@0.28.0:
     resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
 
-  semver@7.8.5:
-    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
+  semver@7.8.6:
+    resolution: {integrity: sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -640,9 +640,6 @@ packages:
         optional: true
       babel-plugin-macros:
         optional: true
-
-  tailwindcss@4.3.3:
-    resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
 
   tailwindcss@4.3.4:
     resolution: {integrity: sha512-PCJZTFFdG+sL3gvnP1Do9o6GbkvH2q0p04xSs3f7cSvmAeK+sttG+/7ncK1fdRwKFfC7n+wDDJaOMBSefkI9ow==}
@@ -1104,14 +1101,14 @@ snapshots:
 
   scheduler@0.28.0: {}
 
-  semver@7.8.5:
+  semver@7.8.6:
     optional: true
 
   sharp@0.33.5:
     dependencies:
       color: 4.2.3
       detect-libc: 2.1.2
-      semver: 7.8.5
+      semver: 7.8.6
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -1147,8 +1144,6 @@ snapshots:
     dependencies:
       client-only: 0.0.1
       react: 19.3.1
-
-  tailwindcss@4.3.3: {}
 
   tailwindcss@4.3.4: {}
 
