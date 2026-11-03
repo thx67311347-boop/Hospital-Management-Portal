@@ -1,6 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // 唔寫 output:export、basePath、assetPrefix
 };
 
-module.exports = nextConfig;
+export default nextConfig;
