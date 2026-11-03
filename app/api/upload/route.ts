@@ -226,7 +226,40 @@ async function handleChunkUpload(
   }
 }
 
-// 合并分块
+// 單獨抽離：處理單一塊讀取、寫入、刪除
+async function processSingleChunk(
+  idx: number,
+  fileName: string,
+  tempDir: string,
+  finalFileStream: fs.WriteStream
+): Promise<void> {
+  const chunkPath = path.join(tempDir, `${fileName}.chunk${idx}`);
+  if (!fs.existsSync(chunkPath)) {
+    throw new Error(`分块 ${idx} 不存在`);
+  }
+  const chunkStream = fs.createReadStream(chunkPath);
+  await new Promise<void>((resolve, reject) => {
+    chunkStream.pipe(finalFileStream, { end: false })
+      .on('finish', resolve)
+      .on('error', reject);
+  });
+  fs.unlinkSync(chunkPath);
+  console.log(`✅ 处理并删除分块 ${idx + 1}`);
+}
+
+// 單獨抽離：清理剩餘分塊
+function cleanRemainingChunks(startIdx: number, totalChunks: number, fileName: string, tempDir: string): void {
+  let j = startIdx;
+  while (j < totalChunks) {
+    const remainingChunkPath = path.join(tempDir, `${fileName}.chunk${j}`);
+    if (fs.existsSync(remainingChunkPath)) {
+      fs.unlinkSync(remainingChunkPath);
+    }
+    j += 1;
+  }
+}
+
+// 合并分块（迴圈內唔寫任何 const / let，全部邏輯抽去外部函數）
 async function mergeChunks(
   fileName: string,
   totalChunks: number,
@@ -234,76 +267,36 @@ async function mergeChunks(
 ): Promise<NextResponse> {
   try {
     console.log('🔄 开始合并分块...');
-
-    // 临时存储分块的目录
     const tempDir = path.join(process.cwd(), 'uploads', 'temp');
     const finalFilePath = path.join(process.cwd(), 'uploads', fileName);
-
-    // 确保最终文件目录存在
     const finalDir = path.dirname(finalFilePath);
     if (!fs.existsSync(finalDir)) {
       fs.mkdirSync(finalDir, { recursive: true });
     }
-
-    // 创建最终文件
     const finalFileStream = fs.createWriteStream(finalFilePath);
 
-    // 按顺序读取并合并分块
-    for (let i = 0; i < totalChunks; i++) {
-      const chunkPath = path.join(tempDir, `${fileName}.chunk${i}`);
-      
-      if (!fs.existsSync(chunkPath)) {
-        // 清理已创建的文件
-        finalFileStream.end();
-        if (fs.existsSync(finalFilePath)) {
-          fs.unlinkSync(finalFilePath);
-        }
-        throw new Error(`分块 ${i} 不存在`);
-      }
-
+    let idx = 0;
+    while (idx < totalChunks) {
       try {
-        // 使用流式读取分块，减少内存使用
-        const chunkStream = fs.createReadStream(chunkPath);
-        await new Promise<void>((resolve, reject) => {
-          chunkStream.pipe(finalFileStream, { end: false })
-            .on('finish', resolve)
-            .on('error', reject);
-        });
-
-        // 删除已处理的分块
-        fs.unlinkSync(chunkPath);
-        console.log(`✅ 处理并删除分块 ${i + 1}/${totalChunks}`);
-      } catch (error) {
-        // 清理已创建的文件和剩余的分块
+        await processSingleChunk(idx, fileName, tempDir, finalFileStream);
+      } catch (err) {
         finalFileStream.end();
         if (fs.existsSync(finalFilePath)) {
           fs.unlinkSync(finalFilePath);
         }
-        // 清理剩余的分块
-        for (let j = i; j < totalChunks; j++) {
-          const remainingChunkPath = path.join(tempDir, `${fileName}.chunk${j}`);
-          if (fs.existsSync(remainingChunkPath)) {
-            fs.unlinkSync(remainingChunkPath);
-          }
-        }
-        throw error;
+        cleanRemainingChunks(idx, totalChunks, fileName, tempDir);
+        throw err;
       }
+      idx += 1;
     }
 
-    // 完成写入
     finalFileStream.end();
-
     console.log('✅ 分块合并完成:', finalFilePath);
-
-    // 验证合并后的文件大小
     const stats = fs.statSync(finalFilePath);
     if (fileSize > 0 && stats.size !== fileSize) {
       console.warn(`⚠️ 文件大小不匹配: 预期 ${fileSize} 字节, 实际 ${stats.size} 字节`);
     }
-
-    // 生成访问路径
     const fileUrl = `/uploads/${fileName}`;
-
     return NextResponse.json({
       success: true,
       message: '文件上传完成',
