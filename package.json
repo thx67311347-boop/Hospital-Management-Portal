@@ -27,6 +27,5 @@
     "typescript": "^5"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@img/sharp-wasm32"]
-  }
+  "onlyBuiltDependencies": ["sharp", "@img/sharp-wasm32"]
 }
